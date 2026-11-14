@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-14
+
 ### Changed
 
 - The engine is now a superaccumulator (Radford Neal's xsum), as in [ryckakas/fsum](https://github.com/ryckakas/fsum)
@@ -25,5 +27,6 @@ All notable changes to this project are documented in this file. The format foll
 - Ints of any size are summed exactly. Values that are neither int nor float throw `TypeError`.
 - Requires PHP 8.2 or newer on a 64-bit build.
 
-[Unreleased]: https://github.com/ryckakas/fsum-php/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ryckakas/fsum-php/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ryckakas/fsum-php/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ryckakas/fsum-php/releases/tag/v0.1.0
