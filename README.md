@@ -96,8 +96,8 @@ final rounding does.
   random inputs (cancellation, subnormals, near overflow, rounding ties, hundreds of partials, full-range ints)
   are compared against it in every order, and `composer soak` keeps going on random seeds for as long as you
   like.
-- CI runs on PHP 8.2 to 8.5 plus 8.5 with the JIT on, with a 100% line-coverage floor and mutation testing
-  (Infection).
+- CI runs on PHP 8.2 to 8.5, plus 8.5 with and without the JIT on arm64 and with the JIT on x86-64, with a 100%
+  line-coverage floor and mutation testing (Infection).
 
 ## Performance
 
