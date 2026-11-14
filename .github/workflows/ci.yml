@@ -140,6 +140,38 @@ jobs:
       - name: bonsai-lint
         run: composer complexity
 
+  api:
+    # A release is a promise about the public API. An intentional break is declared in
+    # .roave-backward-compatibility-check.xml and CHANGELOG.md; see AGENTS.md.
+    name: Public API
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The comparison base is the latest release tag.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The checker needs PHP 8.4+, so it lives in tools/bc-check; in require-dev it
+      # would break the PHP 8.2 and 8.3 installs.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install the checker
+        run: composer install --working-dir=tools/bc-check --no-interaction --no-progress
+
+      - name: Audit the checker's dependencies
+        run: composer audit --working-dir=tools/bc-check
+
+      - name: Backward compatibility
+        run: composer bc -- --format=console --format=github-actions
+
   workflows:
     name: Workflow security
     runs-on: ubuntu-latest
