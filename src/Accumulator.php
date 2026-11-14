@@ -24,7 +24,8 @@ final class Accumulator
 
     /**
      * Adds a value to the running sum. Ints of any size are added exactly. Unlike sum(), it relies on the native
-     * int|float type, so a caller without strict_types gets PHP's usual conversion of numeric strings first.
+     * int|float type: without strict_types, PHP first converts numeric strings ("1e400" becomes INF) and bools
+     * (true adds 1). Anything else throws a TypeError.
      */
     public function add(int|float $value): void
     {

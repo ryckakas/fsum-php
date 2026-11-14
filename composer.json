@@ -68,7 +68,7 @@
         ],
         "mutation": [
             "@putenv XDEBUG_MODE=coverage",
-            "infection --show-mutations --no-interaction --threads=max"
+            "infection --show-mutations=max --no-interaction --threads=max"
         ],
         "bc": "@php tools/bc-check/vendor/bin/roave-backward-compatibility-check",
         "soak": [
