@@ -107,10 +107,13 @@ final class Accumulator
 
     private function addFinite(float $x): void
     {
+        // A temporary swaps faster than list destructuring, which builds an array on each swap in this hot loop.
         $kept = [];
         foreach ($this->partials as $y) {
             if (abs($x) < abs($y)) {
-                [$x, $y] = [$y, $x];
+                $t = $x;
+                $x = $y;
+                $y = $t;
             }
 
             $hi = $x + $y;
@@ -119,7 +122,9 @@ final class Accumulator
                 $this->overflow += (int) $sign;
                 $x = ($x - $sign * self::TWO_1023) - $sign * self::TWO_1023;
                 if (abs($x) < abs($y)) {
-                    [$x, $y] = [$y, $x];
+                    $t = $x;
+                    $x = $y;
+                    $y = $t;
                 }
 
                 $hi = $x + $y;
