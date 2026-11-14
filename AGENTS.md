@@ -21,6 +21,7 @@ composer cs:fix         # apply the fixes
 composer complexity     # bonsai-lint cognitive complexity gate (threshold 15, no baseline)
 composer coverage       # phpunit + Clover + tools/check-coverage.php (floor: 100%)
 composer mutation       # infection (floors: minMsi 84 / minCoveredMsi 84)
+composer bc             # public API vs the latest release tag (Roave BackwardCompatibilityCheck)
 composer soak -- 600    # random seeds against the bcmath oracle for 600 s (default 60): run before a release
 ```
 
@@ -34,6 +35,9 @@ Pass extra flags through Composer with `--`: `composer stan -- --no-progress`.
 - **`coverage` and `mutation` need a coverage driver** (xdebug or pcov). Without one they cannot run; say so
   rather than claiming they passed. The php.net Windows builds ship none; a `php:8.x-cli` container with
   xdebug works.
+- **`composer bc` needs PHP 8.4+ with intl and its own install.** The checker lives in `tools/bc-check` with its
+  own `composer.json` and committed lock, because it requires PHP 8.4 and the library's `require-dev` must install
+  on 8.2. Run `composer install -d tools/bc-check` once. It compares committed code and needs the tags locally.
 - **`composer complexity` downloads its binary once** (bonsai-lint is a launcher). Offline, point
   `BONSAI_LINT_BINARY` at a local build.
 
@@ -88,6 +92,13 @@ dashes in docs or comments.
 - **Workflows are audited like code.** Every `uses:` is pinned to a full commit SHA with the release in a trailing
   comment, every checkout sets `persist-credentials: false`, and the token is read-only. zizmor and actionlint
   fail CI otherwise. Images in `run:` steps are pinned by digest.
+- **The version moves when compatibility does.** The required **Public API** job (`composer bc`) compares the PR
+  against the latest release tag and fails on any break: a removed function, class or method, a changed
+  signature, a narrowed type. Everything autoloadable is public unless marked `@internal`. A break made on purpose
+  is declared in the same PR twice: an `<ignored-regex>` per printed `[BC]` line, with an XML comment giving the
+  reason, in `.roave-backward-compatibility-check.xml` at the root (create it if absent); and under
+  `[Unreleased]` in `CHANGELOG.md`, which commits the next tag to 0.(x+1).0 while below 1.0. The release PR for
+  that tag deletes the file.
 - Dev dependencies are pinned to **exact** versions, which makes `composer audit` actionable. `require` stays a
   range: it is a compatibility contract.
 - Releases are tag-driven and Packagist syncs by webhook. `composer.json` carries no `version` field.

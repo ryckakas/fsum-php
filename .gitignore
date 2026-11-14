@@ -1,4 +1,5 @@
 /vendor/
+/tools/bc-check/vendor/
 /build/
 /tmp/
 /.plans/
@@ -13,3 +14,6 @@ Thumbs.db
 
 # Libraries do not commit the lock file; consumers resolve their own versions.
 composer.lock
+
+# A standalone tool is an application: its lock makes the install reproducible and auditable.
+!/tools/bc-check/composer.lock

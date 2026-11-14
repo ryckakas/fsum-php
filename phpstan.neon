@@ -6,3 +6,6 @@ parameters:
         - tools
         - bench
         - examples
+    excludePaths:
+        # Third-party code, and usually absent: only the Public API job and check:ci install it.
+        - tools/bc-check/vendor (?)

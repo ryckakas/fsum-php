@@ -1,3 +1,3 @@
 [files]
 # Hex bit patterns, which typos reads as misspelled words.
-extend-exclude = ["testdata/"]
+extend-exclude = ["testdata/", "tools/bc-check/composer.lock"]

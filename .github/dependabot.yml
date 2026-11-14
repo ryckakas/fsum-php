@@ -27,6 +27,22 @@ updates:
           - minor
           - patch
 
+  # The API checker's own install. Nothing in it ships, so one grouped PR is enough.
+  - package-ecosystem: composer
+    directory: /tools/bc-check
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
+    groups:
+      bc-check:
+        patterns:
+          - '*'
+
   # zizmor and the actionlint image are pinned where Dependabot cannot see them, so they move by hand.
   - package-ecosystem: github-actions
     directory: /
