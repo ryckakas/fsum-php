@@ -14,19 +14,6 @@ final class GoldenCorpus
     public const PATH = __DIR__ . '/../../testdata/golden.txt';
 
     /**
-     * @return array<string, array{GoldenCase}>
-     */
-    public static function provide(): array
-    {
-        $cases = [];
-        foreach (self::load() as $case) {
-            $cases[$case->name] = [$case];
-        }
-
-        return $cases;
-    }
-
-    /**
      * @return list<GoldenCase>
      */
     public static function load(): array

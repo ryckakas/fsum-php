@@ -12,12 +12,15 @@ reference implementation and owns the golden corpus generator. Behaviour must st
 
 ```bash
 composer check          # cs + stan + complexity + test: the gate before any commit
+composer check:ci       # everything the CI matrix runs: validate, cs, stan, complexity, coverage floor, mutation
 
 composer test           # phpunit
 composer stan           # phpstan analyse (level max)
 composer cs             # php-cs-fixer --dry-run --diff (exit 8 = needs fixing)
 composer cs:fix         # apply the fixes
 composer complexity     # bonsai-lint cognitive complexity gate (threshold 15, no baseline)
+composer coverage       # phpunit + Clover + tools/check-coverage.php (floor: 100%)
+composer mutation       # infection (floors: minMsi 84 / minCoveredMsi 84)
 ```
 
 Pass extra flags through Composer with `--`: `composer stan -- --no-progress`.
@@ -27,8 +30,31 @@ Pass extra flags through Composer with `--`: `composer stan -- --no-progress`.
 - **`composer cs` needs `--sequential` on Windows**: php-cs-fixer's parallel runner can hang there.
 - **Line endings are load-bearing.** `.gitattributes` pins `eol=lf` because php-cs-fixer's PSR-12 rules require
   LF; a CRLF checkout fails `composer cs` locally while CI passes.
+- **`coverage` and `mutation` need a coverage driver** (xdebug or pcov). Without one they cannot run; say so
+  rather than claiming they passed. The php.net Windows builds ship none; a `php:8.x-cli` container with
+  xdebug works.
 - **`composer complexity` downloads its binary once** (bonsai-lint is a launcher). Offline, point
   `BONSAI_LINT_BINARY` at a local build.
+
+## Architecture
+
+- `src/functions.php` holds `Fsum\sum()`, loaded through Composer's `files` autoload. It checks each value's
+  type (PHP cannot enforce an iterable's element type) and feeds an `Accumulator`.
+- `src/Accumulator.php` is the algorithm, ported line by line from the Go `state.go`: Shewchuk partials, an
+  overflow counter in units of 2^1024, the tie at PHP_FLOAT_MAX, and the halfway correction. Keep the two in
+  step; a fix found here is filed against the Go repository too.
+- Ints are split into two floats that each convert exactly (the low 11 bits and the rest), so ints above 2^53
+  are summed exactly instead of being rounded first.
+
+## Testing
+
+Tests are organised by ZOMBIES section comments. Expected values come from the golden corpus, compared by bit
+pattern (`GoldenCorpus::hex()`), so -0.0 differs from 0.0 and a NaN result must be the canonical `NAN`. Never
+hand-compute an expected float beyond exact small cases. Each corpus test loops over all corpus cases and lists
+every mismatch: a data provider per case made each mutant run 4000 tests, and Infection skipped them as too slow.
+
+Coverage floor is **100%**. Mutation floors are **84**: the 26 surviving mutants are equivalent, their categories
+are in `infection.json5`, and an escaped mutant outside those categories is a missing test.
 
 ## Golden corpus
 

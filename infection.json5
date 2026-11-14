@@ -1,0 +1,25 @@
+{
+    $schema: 'vendor/infection/infection/resources/schema.json',
+    source: {
+        directories: [
+            'src',
+        ],
+    },
+    mutators: {
+        '@default': true,
+    },
+    logs: {
+        text: 'build/infection/infection.log',
+        // Escaped mutants only, so a CI log is readable.
+        summary: 'build/infection/summary.log',
+        // Surviving mutants show on the PR diff, where the change was made.
+        github: true,
+    },
+    // A point under the measured 85.2% (150 of 176). Every survivor is equivalent: a comparison on a value that is
+    // never zero there, a swap of equal magnitudes, a return after state that already decides the result, or the
+    // |overflow| >= 2 early exit, which the INF arithmetic below it reaches anyway.
+    minMsi: 84,
+    minCoveredMsi: 84,
+    // The suite runs in about a second.
+    timeout: 10,
+}

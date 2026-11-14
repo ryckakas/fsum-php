@@ -26,10 +26,20 @@
         "php-64bit": ">=8.2"
     },
     "require-dev": {
+        "ext-simplexml": "*",
         "bonsai-lint/bonsai-lint": "0.5.1",
         "friendsofphp/php-cs-fixer": "3.95.29",
+        "infection/infection": "0.32.6",
         "phpstan/phpstan": "2.3.5",
         "phpunit/phpunit": "11.5.57"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fsum\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -39,7 +49,10 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "infection/extension-installer": false
+        }
     },
     "scripts": {
         "test": "phpunit",
@@ -47,11 +60,28 @@
         "cs": "php-cs-fixer fix --dry-run --diff",
         "cs:fix": "php-cs-fixer fix",
         "complexity": "bonsai-lint .",
+        "coverage": [
+            "@putenv XDEBUG_MODE=coverage",
+            "phpunit --coverage-clover=build/coverage/clover.xml --coverage-text",
+            "@php tools/check-coverage.php build/coverage/clover.xml"
+        ],
+        "mutation": [
+            "@putenv XDEBUG_MODE=coverage",
+            "infection --show-mutations --no-interaction --threads=max"
+        ],
         "check": [
             "@cs",
             "@stan",
             "@complexity",
             "@test"
+        ],
+        "check:ci": [
+            "@composer validate --strict",
+            "@cs",
+            "@stan",
+            "@complexity",
+            "@coverage",
+            "@mutation"
         ]
     },
     "scripts-descriptions": {
@@ -60,6 +90,9 @@
         "cs": "Check code style without making changes.",
         "cs:fix": "Fix code style automatically.",
         "complexity": "Run the cognitive complexity gate (bonsai-lint).",
-        "check": "The local gate: code style, static analysis, complexity, tests."
+        "coverage": "Run tests with coverage and fail below the line-coverage floor.",
+        "mutation": "Run mutation testing (Infection) and fail below the MSI floors.",
+        "check": "The fast local gate: code style, static analysis, complexity, tests.",
+        "check:ci": "Everything the CI matrix runs, including coverage and mutation testing. Needs a coverage driver (xdebug or pcov)."
     }
 }

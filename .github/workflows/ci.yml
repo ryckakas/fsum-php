@@ -44,7 +44,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php }}
-          coverage: none
+          coverage: xdebug
           tools: composer:v2
 
       - name: Validate composer.json
@@ -65,8 +65,22 @@ jobs:
       - name: Static analysis
         run: composer stan -- --no-progress
 
-      - name: Tests
-        run: composer test
+      # A floor rather than a printed percentage, which lets coverage rot.
+      - name: Tests and coverage floor
+        run: composer coverage
+
+      # Coverage proves a line ran; mutation testing proves an assertion noticed it change.
+      - name: Mutation testing
+        run: composer mutation
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: infection-report-php-${{ matrix.php }}
+          path: build/infection/
+          if-no-files-found: ignore
+          retention-days: 14
 
   complexity:
     # Syntax-only, so one run covers every PHP version.
