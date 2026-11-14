@@ -1,0 +1,3 @@
+[files]
+# Hex bit patterns, which typos reads as misspelled words.
+extend-exclude = ["testdata/"]

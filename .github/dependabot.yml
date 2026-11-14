@@ -1,0 +1,40 @@
+version: 2
+
+# Exact pins never drift, so Dependabot is how they move: one reviewed PR per bump.
+# The 7-day cooldown lets a malicious or broken release be yanked before it lands here.
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
+    groups:
+      # One PR for the dev toolchain, because its tools are exercised together.
+      # Majors stay out of the group, so each breaking bump is its own PR.
+      dev-tooling:
+        patterns:
+          - '*'
+        # A bonsai-lint bump can move scores, so it gets its own PR rather than blocking the rest.
+        exclude-patterns:
+          - 'bonsai-lint/bonsai-lint'
+        update-types:
+          - minor
+          - patch
+
+  # zizmor and the actionlint image are pinned where Dependabot cannot see them, so they move by hand.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
