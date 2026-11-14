@@ -11,7 +11,7 @@ reference implementation and owns the golden corpus generator. Behaviour must st
 ## Commands
 
 ```bash
-composer check          # cs + stan + complexity + test: the gate before any commit
+composer check          # cs + stan + complexity + test + README example: the gate before any commit
 composer check:ci       # everything the CI matrix runs: validate, cs, stan, complexity, coverage floor, mutation
 
 composer test           # phpunit
@@ -63,6 +63,12 @@ skips for speed.
 
 Coverage floor is **100%**. Mutation floors are **84**: the 26 surviving mutants are equivalent, their categories
 are in `infection.json5`, and an escaped mutant outside those categories is a missing test.
+
+## Docs
+
+`README.md` is the landing page and makes promises: `examples/example.php` runs its examples in CI and fails if a
+result drifts. `CHANGELOG.md` (Keep a Changelog) is the behavioural record. A change to behaviour updates both in
+the same PR, under `[Unreleased]`.
 
 ## Golden corpus
 

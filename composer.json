@@ -78,7 +78,8 @@
             "@cs",
             "@stan",
             "@complexity",
-            "@test"
+            "@test",
+            "@php examples/example.php"
         ],
         "check:ci": [
             "@composer validate --strict",
@@ -86,6 +87,7 @@
             "@stan",
             "@complexity",
             "@coverage",
+            "@php examples/example.php",
             "@mutation"
         ]
     },
@@ -98,7 +100,7 @@
         "coverage": "Run tests with coverage and fail below the line-coverage floor.",
         "mutation": "Run mutation testing (Infection) and fail below the MSI floors.",
         "soak": "Run the randomized oracle comparison until a time budget runs out (seconds after --, default 60).",
-        "check": "The fast local gate: code style, static analysis, complexity, tests.",
+        "check": "The fast local gate: code style, static analysis, complexity, tests, the README example.",
         "check:ci": "Everything the CI matrix runs, including coverage and mutation testing. Needs a coverage driver (xdebug or pcov)."
     }
 }

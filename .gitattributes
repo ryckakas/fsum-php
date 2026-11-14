@@ -16,6 +16,7 @@
 /CLAUDE.md export-ignore
 /_typos.toml export-ignore
 /bench export-ignore
+/examples export-ignore
 /bonsai-lint.toml export-ignore
 /infection.json5 export-ignore
 /phpstan.neon export-ignore

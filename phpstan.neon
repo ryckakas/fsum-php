@@ -5,3 +5,4 @@ parameters:
         - tests
         - tools
         - bench
+        - examples
