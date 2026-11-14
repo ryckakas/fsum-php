@@ -116,6 +116,43 @@ jobs:
       - name: Tests
         run: composer test
 
+  arm64:
+    # The matrix runs on x86-64 only. On arm64 both the interpreter and the JIT's code generator are different
+    # machine code, so the suite runs once with each.
+    name: PHP 8.5 (arm64)
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+          ini-values: opcache.enable_cli=1, opcache.jit_buffer_size=64M
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      - name: Confirm the machine is arm64
+        run: test "$(uname -m)" = aarch64
+
+      - name: Tests, JIT off
+        run: php -d opcache.jit=disable vendor/bin/phpunit
+
+      # A silently disabled JIT would make the next step a repeat of the previous one.
+      - name: Confirm the JIT is on
+        run: |
+          php -d opcache.jit=tracing -r 'exit(opcache_get_status()["jit"]["on"] ?? false ? 0 : 1);'
+
+      - name: Tests, JIT on
+        run: php -d opcache.jit=tracing vendor/bin/phpunit
+
   complexity:
     # Syntax-only, so one run covers every PHP version.
     name: Cognitive complexity
