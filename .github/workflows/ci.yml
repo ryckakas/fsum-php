@@ -107,7 +107,8 @@ jobs:
 
       # A silently disabled JIT would make this job a copy of the matrix.
       - name: Confirm the JIT is on
-        run: php -r 'exit(opcache_get_status()["jit"]["on"] ?? false ? 0 : 1);'
+        run: |
+          php -r 'exit(opcache_get_status()["jit"]["on"] ?? false ? 0 : 1);'
 
       - name: Tests
         run: composer test
