@@ -63,7 +63,9 @@ $accumulator->sum();                                 // 1.0000000000000002E+16
 
 Values must be `int` or `float`. `sum()` throws a `TypeError` naming the key of anything else, including numeric
 strings: `"0.1"` has no single exact meaning, and `Math.sumPrecise` rejects strings too. Convert them yourself
-first. `Accumulator::add()` uses a native `int|float` type, so it follows your file's `strict_types` mode.
+first. `Accumulator::add()` uses a native `int|float` type, so it follows your file's `strict_types` mode: without
+it, PHP converts numeric strings (`"1e400"` becomes `INF`) and bools (`true` adds 1) before they reach the sum, and
+anything else throws a `TypeError`.
 
 ## Semantics
 

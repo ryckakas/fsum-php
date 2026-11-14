@@ -25,6 +25,7 @@ jobs:
   gitleaks:
     name: Gitleaks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       # Full history: PR and push runs scan their commit range, a manual run scans everything.
       - name: Checkout

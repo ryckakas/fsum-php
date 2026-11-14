@@ -17,9 +17,9 @@
         // Surviving mutants show on the PR diff, where the change was made.
         github: true,
     },
-    // A point under the measured 85.2% (150 of 176). Every survivor is equivalent: a comparison on a value that is
-    // never zero there, a swap of equal magnitudes, a return after state that already decides the result, or the
-    // |overflow| >= 2 early exit, which the INF arithmetic below it reaches anyway.
+    // A point under the measured 85.2% (150 of 176). Every survivor is equivalent: a comparison on a value never zero
+    // there, a swap before an addition that is exact either way, adding a zero, work after NAN or INF decided the
+    // result, an initial value never read, or the overflow early exit, which the arithmetic below it reaches anyway.
     minMsi: 84,
     minCoveredMsi: 84,
     // The suite runs in about a second.
