@@ -19,18 +19,33 @@ use TypeError;
  */
 function sum(iterable $values): float
 {
+    $few = Superaccumulator::sumUpToTwo($values);
+    if ($few !== null) {
+        return $few;
+    }
+
     $accumulator = new Accumulator();
+    $floats = [];
     foreach ($values as $key => $value) {
-        // @phpstan-ignore function.alreadyNarrowedType, booleanAnd.alwaysFalse (PHP cannot enforce the element type)
-        if (!is_float($value) && !is_int($value)) {
+        if (is_float($value)) {
+            $floats[] = $value;
+            if (count($floats) === Superaccumulator::ADDS_PER_NORMALIZE) {
+                $accumulator->addFloats($floats);
+                $floats = [];
+            }
+        } elseif (is_int($value)) {
+            $accumulator->add($value);
+        } else {
             throw new TypeError(sprintf(
                 'Fsum\sum(): the value at key %s must be int or float, %s given',
                 is_scalar($key) ? var_export($key, true) : get_debug_type($key),
                 get_debug_type($value),
             ));
         }
+    }
 
-        $accumulator->add($value);
+    if ($floats !== []) {
+        $accumulator->addFloats($floats);
     }
 
     return $accumulator->sum();

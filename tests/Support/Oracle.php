@@ -51,6 +51,33 @@ final class Oracle
     }
 
     /**
+     * The float nearest to the sum of chunk[i] * 2^(32i-1075), the value a Superaccumulator holds.
+     *
+     * @param array<int, int> $chunk with an even chunk 0: no float has a bit below 2^-1074
+     */
+    public static function roundChunks(array $chunk): float
+    {
+        return (float) self::toDecimal(bcdiv(self::chunkUnits($chunk), '2'));
+    }
+
+    /**
+     * The exact value of the chunks, as an integer count of 2^-1075.
+     *
+     * @param array<int, int> $chunk
+     *
+     * @return numeric-string
+     */
+    public static function chunkUnits(array $chunk): string
+    {
+        $units = '0';
+        foreach ($chunk as $i => $c) {
+            $units = bcadd($units, bcmul((string) $c, self::powerOfTwo(32 * $i)));
+        }
+
+        return $units;
+    }
+
+    /**
      * The value as an exact integer multiple of 2^-1074, the smallest float.
      *
      * @return numeric-string

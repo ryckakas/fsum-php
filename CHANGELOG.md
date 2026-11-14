@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Changed
+
+- The engine is now a superaccumulator (Radford Neal's xsum), as in [ryckakas/fsum](https://github.com/ryckakas/fsum)
+  v0.2.0 for Go: the cost per value no longer depends on the data. Summing a million floats is 3 times faster for
+  uniform data and 40 times faster for data spread over the whole float range. Results are unchanged, bit for bit.
+- `sum()` of one or two floats is about 3 times faster; of three to ten values it is about 1 µs slower, the fixed
+  cost of rounding.
+- An `Accumulator` now holds up to 2,046 floats it has not folded in yet, about 33 KB at most.
+
 ## [0.1.0] - 2026-11-14
 
 ### Added
