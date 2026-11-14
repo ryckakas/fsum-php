@@ -20,7 +20,7 @@ composer cs             # php-cs-fixer --dry-run --diff (exit 8 = needs fixing)
 composer cs:fix         # apply the fixes
 composer complexity     # bonsai-lint cognitive complexity gate (threshold 15, no baseline)
 composer coverage       # phpunit + Clover + tools/check-coverage.php (floor: 100%)
-composer mutation       # infection (floors: minMsi 84 / minCoveredMsi 84)
+composer mutation       # infection (floors: minMsi 94 / minCoveredMsi 94)
 composer bc             # public API vs the latest release tag (Roave BackwardCompatibilityCheck)
 composer soak -- 600    # random seeds against the bcmath oracle for 600 s (default 60): run before a release
 ```
@@ -44,12 +44,16 @@ Pass extra flags through Composer with `--`: `composer stan -- --no-progress`.
 ## Architecture
 
 - `src/functions.php` holds `Fsum\sum()`, loaded through Composer's `files` autoload. It checks each value's
-  type (PHP cannot enforce an iterable's element type) and feeds an `Accumulator`.
-- `src/Accumulator.php` is the algorithm, ported line by line from the Go `state.go`: Shewchuk partials, an
-  overflow counter in units of 2^1024, the tie at PHP_FLOAT_MAX, and the halfway correction. Keep the two in
-  step; a fix found here is filed against the Go repository too.
-- Ints are split into two floats that each convert exactly (the low 11 bits and the rest), so ints above 2^53
-  are summed exactly instead of being rounded first.
+  type (PHP cannot enforce an iterable's element type) and hands floats to an `Accumulator` in blocks of 2046.
+- `src/Accumulator.php` holds the `Math.sumPrecise` rules (-0.0, NAN, infinities) around the engine, as the Go
+  `state.go` does, plus a buffer of pending floats: PHP has no way to read one float's bits cheaply, so the bits
+  are read a block at a time with `pack`/`unpack`. `addFloats()` is `@internal`, for `sum()` only.
+- `src/Superaccumulator.php` (`@internal`) is the engine, ported from the Go `xsum.go`: 67 overlapping int
+  chunks, a carry pass every 2046 adds, and rounding of the magnitude. Keep the two in step; a fix found here is
+  filed against the Go repository too. Two things differ on purpose: PHP ints overflow into floats, so no chunk
+  may ever reach 2^63, and PHP has no unsigned ints, so rounding works on 62 bits where Go takes 64.
+- Ints go straight into two chunks as integers, so ints above 2^53 are summed exactly instead of being rounded
+  first.
 
 ## Testing
 
@@ -58,14 +62,18 @@ pattern (`GoldenCorpus::hex()`), so -0.0 differs from 0.0 and a NaN result must 
 hand-compute an expected float beyond exact small cases. Each corpus test loops over all corpus cases and lists
 every mismatch: a data provider per case made each mutant run 4000 tests, and Infection skipped them as too slow.
 
-Two independent oracles: the golden corpus, and `tests/Support/Oracle.php`, which sums exactly with bcmath (each
-value as an integer count of 2^-1074) and lets PHP's correctly rounded string-to-float cast round once.
+Three independent references: the golden corpus; `tests/Support/Shewchuk.php`, the v0.1 engine, test-only and
+fast, so it is the one long inputs and Infection use; and `tests/Support/Oracle.php`, which sums exactly with
+bcmath (each value as an integer count of 2^-1074) and lets PHP's correctly rounded string-to-float cast round once.
 `DifferentialTest` checks the oracle against the corpus, then runs seeded `RandomInputs` (the Go generator's
 classes plus large ints) through `sum()`, shuffled input and an Accumulator. A soak failure prints a class and
 seed; `DifferentialTest::check($class, $seed)` replays it. These tests are in the `oracle` group, which Infection
 skips for speed.
 
-Coverage floor is **100%**. Mutation floors are **84**: the 26 surviving mutants are equivalent, their categories
+`PropertiesTest` holds what must be true for any engine (negation, carry passes, ties broken far below);
+`SuperaccumulatorTest` tests chunk states directly, including ones no real input reaches.
+
+Coverage floor is **100%**. Mutation floors are **94**: the 19 surviving mutants are equivalent, their categories
 are in `infection.json5`, and an escaped mutant outside those categories is a missing test.
 
 ## Docs

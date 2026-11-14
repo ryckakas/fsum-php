@@ -5,7 +5,7 @@
             'src',
         ],
     },
-    // The oracle tests take seconds and kill nothing the corpus misses; with them every mutant ran past the timeout.
+    // The oracle tests run bcmath on thousands of states; the v0.1 engine comparisons kill the same mutants faster.
     testFrameworkOptions: '--exclude-group=oracle',
     mutators: {
         '@default': true,
@@ -17,11 +17,11 @@
         // Surviving mutants show on the PR diff, where the change was made.
         github: true,
     },
-    // A point under the measured 85.2% (150 of 176). Every survivor is equivalent: a comparison on a value never zero
-    // there, a swap before an addition that is exact either way, adding a zero, work after NAN or INF decided the
-    // result, an initial value never read, or the overflow early exit, which the arithmetic below it reaches anyway.
-    minMsi: 84,
-    minCoveredMsi: 84,
-    // The suite runs in about a second.
-    timeout: 10,
+    // A point under the measured 95.4% (392 of 411). Every survivor is equivalent: it only costs speed (an earlier
+    // carry pass, a skipped shortcut, a visit to an empty chunk), compares a value never zero there, returns what the
+    // code below reaches anyway, uses the one add of slack in the carry budget, or moves a bit that is sticky anyway.
+    minMsi: 94,
+    minCoveredMsi: 94,
+    // The suite without the oracle group runs in about a second, several times that under xdebug on a CI runner.
+    timeout: 20,
 }

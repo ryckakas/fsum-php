@@ -100,35 +100,48 @@ final rounding does.
   random inputs (cancellation, subnormals, near overflow, rounding ties, hundreds of partials, full-range ints)
   are compared against it in every order, and `composer soak` keeps going on random seeds for as long as you
   like.
+- **A second exact engine**: the Shewchuk implementation from v0.1, kept in the tests and compared with the
+  current one on inputs thousands of values long, on and around every carry pass, and on ties broken by a single
+  bit up to 130 places below.
+- **The accumulator itself**: random internal states, including ones no real input reaches in a test, rounded
+  against bcmath; negating every input must negate the result.
 - CI runs on PHP 8.2 to 8.5, plus 8.5 with and without the JIT on arm64 and with the JIT on x86-64, with a 100%
   line-coverage floor and mutation testing (Infection).
 
 ## Performance
 
-Exactness costs time, and in PHP more than in compiled languages. Each value is added into a short list of
-non-overlapping partial sums, so the cost per value grows with how many partials the data keeps alive: one to five
-for everyday data, dozens for data spread over the whole float range.
+Exactness costs time, but a constant amount per value. The running sum is a superaccumulator: 67 overlapping
+integer chunks, where adding a value touches two chunks and never carries. The cost does not depend on the data.
 
-Time to sum 1,000,000 floats (PHP 8.5.12, `php bench/bench.php`, JIT off / `opcache.jit=tracing`):
+Time to sum 1,000,000 floats (PHP 8.5.4, Apple M5, `php bench/bench.php`, JIT off / `opcache.jit=tracing`):
 
 | Data | `array_sum` | Plain loop | Kahan | Neumaier | `Fsum\sum` | vs plain loop |
 |---|---|---|---|---|---|---|
-| Uniform in [0, 1) | 2.9 ms | 9.6 / 3.2 ms | 21.8 / 7.1 ms | 39.8 / 16.9 ms | 343 / 160 ms | 36x / 49x |
-| Canceling pairs, shuffled | 2.9 ms | 9.7 / 3.3 ms | 21.6 / 7.2 ms | 40.4 / 17.2 ms | 823 / 372 ms | 85x / 114x |
-| Exponents spread over 2^-300 to 2^300 | 3.0 ms | 9.6 / 4.0 ms | 23.6 / 7.4 ms | 40.4 / 16.9 ms | 2,021 / 942 ms | 211x / 233x |
-| Exponents spread over the whole float range | 2.9 ms | 9.5 / 3.3 ms | 22.8 / 7.3 ms | 39.7 / 17.2 ms | 5,448 / 2,411 ms | 573x / 734x |
+| Uniform in [0, 1) | 1.4 ms | 2.8 / 1.0 ms | 14.0 / 2.8 ms | 16.2 / 7.1 ms | 45 / 20 ms | 16x / 21x |
+| Canceling pairs, shuffled | 1.3 ms | 3.0 / 1.0 ms | 14.0 / 2.8 ms | 15.7 / 7.0 ms | 48 / 23 ms | 16x / 23x |
+| Exponents spread over 2^-300 to 2^300 | 1.4 ms | 3.1 / 1.0 ms | 14.1 / 2.8 ms | 16.1 / 7.1 ms | 48 / 24 ms | 15x / 23x |
+| Exponents spread over the whole float range | 1.4 ms | 2.9 / 1.0 ms | 14.0 / 2.8 ms | 16.0 / 6.9 ms | 48 / 23 ms | 17x / 23x |
 
-About 0.3 µs per value on everyday data is fine for totals, reports and statistics. On hot paths over millions of
-values where the last bit doesn't matter, keep `array_sum`.
+About 0.05 µs per value is fine for totals, reports and statistics. On hot paths over millions of values where
+the last bit doesn't matter, keep `array_sum`.
+
+Short inputs pay a fixed cost for rounding: without the JIT, `sum()` takes about 0.09 µs for one or two floats,
+1.5 to 2.5 µs for three to ten values and 6 to 8 µs for a hundred. `Accumulator::add()` costs about 0.05 µs per value. An
+`Accumulator` holds up to 2,046 floats it has not folded into the chunks yet, about 33 KB at most: PHP reads float
+bits much faster a block at a time.
 
 ## Credits
 
+- Radford M. Neal, "Fast exact summation using small and large superaccumulators" (2015) and his
+  [xsum](https://gitlab.com/radfordneal/xsum): the superaccumulator. `src/Superaccumulator.php` carries its
+  licence notice.
 - Jonathan Richard Shewchuk, "Adaptive Precision Floating-Point Arithmetic and Fast Robust Geometric
-  Predicates" (1997): the non-overlapping partials.
+  Predicates" (1997): the non-overlapping partials of the first engine, which the tests still compare against.
 - Python's [`math.fsum`](https://github.com/python/cpython/blob/main/Modules/mathmodule.c): the summation
-  loop and the half-way rounding correction.
-- The TC39 [`Math.sumPrecise` proposal](https://github.com/tc39/proposal-math-sum): the semantics and the
-  overflow handling.
+  loop and the half-way rounding correction of that first engine.
+- The TC39 [`Math.sumPrecise` proposal](https://github.com/tc39/proposal-math-sum) and its polyfill by Kevin
+  Gibbons: the semantics, and the overflow handling of the first engine. `tests/Support/Shewchuk.php` carries the
+  licence notices.
 - [ryckakas/fsum](https://github.com/ryckakas/fsum): the reference implementation and the golden corpus.
 
 ## License
