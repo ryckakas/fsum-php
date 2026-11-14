@@ -1,0 +1,2 @@
+# Deliberately no baseline: a finding is fixed by refactoring, not by recording it.
+threshold = 15

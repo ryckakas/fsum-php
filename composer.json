@@ -1,0 +1,65 @@
+{
+    "name": "ryckakas/fsum",
+    "description": "Exact, correctly rounded float summation for PHP: JavaScript Math.sumPrecise semantics, the equivalent of Python's math.fsum.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "accurate",
+        "exact",
+        "float",
+        "floating-point",
+        "fsum",
+        "kahan",
+        "math",
+        "numerics",
+        "sum",
+        "sumprecise",
+        "summation"
+    ],
+    "authors": [
+        {
+            "name": "Ricardas Kauneckas"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "php-64bit": ">=8.2"
+    },
+    "require-dev": {
+        "bonsai-lint/bonsai-lint": "0.5.1",
+        "friendsofphp/php-cs-fixer": "3.95.29",
+        "phpstan/phpstan": "2.3.5",
+        "phpunit/phpunit": "11.5.57"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fsum\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "complexity": "bonsai-lint .",
+        "check": [
+            "@cs",
+            "@stan",
+            "@complexity",
+            "@test"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Run the test suite with PHPUnit.",
+        "stan": "Run static analysis with PHPStan.",
+        "cs": "Check code style without making changes.",
+        "cs:fix": "Fix code style automatically.",
+        "complexity": "Run the cognitive complexity gate (bonsai-lint).",
+        "check": "The local gate: code style, static analysis, complexity, tests."
+    }
+}

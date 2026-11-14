@@ -1,1 +1,22 @@
+# LF in the working tree too: php-cs-fixer requires it, and a CRLF Windows checkout
+# would fail `composer cs` locally while CI passes.
 * text=auto eol=lf
+
+*.php text eol=lf diff=php
+
+# Generated in the Go repository; a diff of hex bit patterns says nothing.
+/testdata/golden.txt linguist-generated -diff
+
+# Dev-only files stay out of what `composer require` installs.
+/.github export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/AGENTS.md export-ignore
+/CLAUDE.md export-ignore
+/_typos.toml export-ignore
+/bonsai-lint.toml export-ignore
+/phpstan.neon export-ignore
+/phpunit.xml export-ignore
+/testdata export-ignore
+/tests export-ignore
