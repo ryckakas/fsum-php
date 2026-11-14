@@ -21,6 +21,7 @@ composer cs:fix         # apply the fixes
 composer complexity     # bonsai-lint cognitive complexity gate (threshold 15, no baseline)
 composer coverage       # phpunit + Clover + tools/check-coverage.php (floor: 100%)
 composer mutation       # infection (floors: minMsi 84 / minCoveredMsi 84)
+composer soak -- 600    # random seeds against the bcmath oracle for 600 s (default 60): run before a release
 ```
 
 Pass extra flags through Composer with `--`: `composer stan -- --no-progress`.
@@ -52,6 +53,13 @@ Tests are organised by ZOMBIES section comments. Expected values come from the g
 pattern (`GoldenCorpus::hex()`), so -0.0 differs from 0.0 and a NaN result must be the canonical `NAN`. Never
 hand-compute an expected float beyond exact small cases. Each corpus test loops over all corpus cases and lists
 every mismatch: a data provider per case made each mutant run 4000 tests, and Infection skipped them as too slow.
+
+Two independent oracles: the golden corpus, and `tests/Support/Oracle.php`, which sums exactly with bcmath (each
+value as an integer count of 2^-1074) and lets PHP's correctly rounded string-to-float cast round once.
+`DifferentialTest` checks the oracle against the corpus, then runs seeded `RandomInputs` (the Go generator's
+classes plus large ints) through `sum()`, shuffled input and an Accumulator. A soak failure prints a class and
+seed; `DifferentialTest::check($class, $seed)` replays it. These tests are in the `oracle` group, which Infection
+skips for speed.
 
 Coverage floor is **100%**. Mutation floors are **84**: the 26 surviving mutants are equivalent, their categories
 are in `infection.json5`, and an escaped mutant outside those categories is a missing test.

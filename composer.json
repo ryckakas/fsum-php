@@ -26,6 +26,7 @@
         "php-64bit": ">=8.2"
     },
     "require-dev": {
+        "ext-bcmath": "*",
         "ext-simplexml": "*",
         "bonsai-lint/bonsai-lint": "0.5.1",
         "friendsofphp/php-cs-fixer": "3.95.29",
@@ -69,6 +70,10 @@
             "@putenv XDEBUG_MODE=coverage",
             "infection --show-mutations --no-interaction --threads=max"
         ],
+        "soak": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php tools/soak.php"
+        ],
         "check": [
             "@cs",
             "@stan",
@@ -92,6 +97,7 @@
         "complexity": "Run the cognitive complexity gate (bonsai-lint).",
         "coverage": "Run tests with coverage and fail below the line-coverage floor.",
         "mutation": "Run mutation testing (Infection) and fail below the MSI floors.",
+        "soak": "Run the randomized oracle comparison until a time budget runs out (seconds after --, default 60).",
         "check": "The fast local gate: code style, static analysis, complexity, tests.",
         "check:ci": "Everything the CI matrix runs, including coverage and mutation testing. Needs a coverage driver (xdebug or pcov)."
     }

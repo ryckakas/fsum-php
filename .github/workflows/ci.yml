@@ -82,6 +82,36 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  jit:
+    # The JIT compiles float arithmetic down a separate code path; an exact algorithm must not notice.
+    # No coverage driver here, because xdebug turns the JIT off.
+    name: PHP 8.5 (JIT)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+          ini-values: opcache.enable_cli=1, opcache.jit=tracing, opcache.jit_buffer_size=64M
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      # A silently disabled JIT would make this job a copy of the matrix.
+      - name: Confirm the JIT is on
+        run: php -r 'exit(opcache_get_status()["jit"]["on"] ?? false ? 0 : 1);'
+
+      - name: Tests
+        run: composer test
+
   complexity:
     # Syntax-only, so one run covers every PHP version.
     name: Cognitive complexity

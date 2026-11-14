@@ -5,6 +5,8 @@
             'src',
         ],
     },
+    // The oracle tests take seconds and kill nothing the corpus misses; with them every mutant ran past the timeout.
+    testFrameworkOptions: '--exclude-group=oracle',
     mutators: {
         '@default': true,
     },
