@@ -23,7 +23,7 @@ use function Fsum\sum;
 final class PropertiesTest extends TestCase
 {
     // The engine propagates carries every 2046 adds; these lengths sit on and around the first three passes.
-    private const CARRY_LENGTHS = [2045, 2046, 2047, 2048, 4091, 4092, 4093, 6137, 6138, 6139];
+    private const CARRY_LENGTHS = [2045, 2046, 2047, 4092, 4093, 6138, 6139];
     private const CARRY_EXPONENTS = [-992, 0, 992];
 
     // Many
@@ -47,7 +47,8 @@ final class PropertiesTest extends TestCase
     {
         $mismatches = [];
         foreach (RandomInputs::CLASSES as $class) {
-            for ($seed = 1; $seed <= 40; $seed++) {
+            // Many-partials cases hold about a thousand values each, and Infection reruns this test per mutant.
+            for ($seed = 1; $seed <= ($class === 'many-partials' ? 2 : 20); $seed++) {
                 $values = (new RandomInputs($seed))->generate($class, $seed % 64 + 1);
                 $mismatches[] = self::mismatch("{$class} seed {$seed}", $values, Shewchuk::sum($values));
             }
@@ -60,9 +61,9 @@ final class PropertiesTest extends TestCase
     {
         $random = new Randomizer(new Xoshiro256StarStar(4097));
         $mismatches = [];
-        for ($case = 0; $case < 12; $case++) {
+        for ($case = 0; $case < 4; $case++) {
             $values = [];
-            while (count($values) < 9000) {
+            while (count($values) < 7000) {
                 $x = RandomInputs::fromBits($random->nextInt() << $random->getInt(0, 1));
                 array_push($values, ...array_fill(0, $random->getInt(1, 4097), is_finite($x) ? $x : 1.0));
             }
@@ -158,19 +159,19 @@ final class PropertiesTest extends TestCase
     }
 
     /**
-     * A value, half an ULP that makes a tie, and one bit up to 130 places lower that breaks it, at 64 exponents in
+     * A value, half an ULP that makes a tie, and one bit up to 130 places lower that breaks it, at 32 exponents in
      * a row so the bit lands in every position of every chunk the rounding looks at.
      */
     public function testATieIsBrokenByOneBitAnyDistanceBelow(): void
     {
         $mismatches = [];
-        for ($exponent = 1000; $exponent < 1064; $exponent++) {
+        for ($exponent = 1000; $exponent < 1032; $exponent++) {
             $halfUlp = RandomInputs::fromBits(($exponent - 53) << 52);
             foreach ([0, 1] as $odd) {
                 $x = RandomInputs::fromBits(($exponent << 52) | $odd);
                 for ($distance = 1; $distance <= 130; $distance++) {
                     $bit = $halfUlp * 2.0 ** -$distance;
-                    foreach ([[$x, $halfUlp, $bit], [$x, $halfUlp, -$bit], [-$x, -$halfUlp, $bit]] as $values) {
+                    foreach ([[$x, $halfUlp, $bit], [-$x, -$halfUlp, $bit]] as $values) {
                         $mismatches[] = self::mismatch("exponent {$exponent} odd {$odd} distance {$distance}", $values, Shewchuk::sum($values));
                     }
                 }

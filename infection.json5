@@ -22,6 +22,6 @@
     // code below reaches anyway, uses the one add of slack in the carry budget, or moves a bit that is sticky anyway.
     minMsi: 94,
     minCoveredMsi: 94,
-    // The suite without the oracle group runs in about a second.
-    timeout: 10,
+    // The suite without the oracle group runs in about a second, several times that under xdebug on a CI runner.
+    timeout: 20,
 }
