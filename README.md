@@ -1,5 +1,7 @@
 # fsum-php
 
+![fsum-php: exact, correctly rounded float summation for PHP](.github/cover.jpg)
+
 [![CI](https://github.com/ryckakas/fsum-php/actions/workflows/ci.yml/badge.svg)](https://github.com/ryckakas/fsum-php/actions/workflows/ci.yml)
 [![Packagist](https://img.shields.io/packagist/v/ryckakas/fsum)](https://packagist.org/packages/ryckakas/fsum)
 
