@@ -1,0 +1,15 @@
+/vendor/
+/build/
+/tmp/
+/.plans/
+/.infection/
+/.php-cs-fixer.cache
+/.phpunit.cache/
+/.phpunit.result.cache
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Libraries do not commit the lock file; consumers resolve their own versions.
+composer.lock
